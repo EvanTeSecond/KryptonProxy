@@ -1,14 +1,15 @@
 {
-  "name": "ultraviolet-static",
-  "main": "lib/index.js",
-  "version": "1.0.5",
-  "type": "module",
-  "files": [
-    "public",
-    "lib"
-  ],
-  "devDependencies": {
-    "eslint": "^8.23.0",
-    "prettier": "^2.7.1"
+  "name": "ultraviolet-proxy",
+  "version": "1.0.0",
+  "description": "Ultraviolet proxy deployment",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@titaniumnetwork-dev/ultraviolet": "^1.0.10",
+    "@tomphttp/bare-server-node": "^1.2.5",
+    "express": "^4.18.2"
   }
 }
