@@ -1,44 +1,45 @@
-"use strict";
-/**
- * @type {HTMLFormElement}
- */
-const form = document.getElementById("uv-form");
-/**
- * @type {HTMLInputElement}
- */
-const address = document.getElementById("uv-address");
-/**
- * @type {HTMLInputElement}
- */
-const searchEngine = document.getElementById("uv-search-engine");
-/**
- * @type {HTMLParagraphElement}
- */
-const error = document.getElementById("uv-error");
-/**
- * @type {HTMLPreElement}
- */
-const errorCode = document.getElementById("uv-error-code");
-const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
+const express = require('express');
+const { uvPath } = require('@titaniumnetwork-dev/ultraviolet');
+const { createBareServer } = require('@tomphttp/bare-server-node');
+const http = require('http');
+const path = require('path');
 
-form.addEventListener("submit", async (event) => {
-	event.preventDefault();
+const app = express();
+const PORT = process.env.PORT || 8080;
 
-	try {
-		await registerSW();
-	} catch (err) {
-		error.textContent = "Failed to register service worker.";
-		errorCode.textContent = err.toString();
-		throw err;
-	}
+// Create bare server
+const bareServer = createBareServer('/bare/');
 
-	const url = search(address.value, searchEngine.value);
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
-	let frame = document.getElementById("uv-frame");
-	frame.style.display = "block";
-	let wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
-	if (await connection.getTransport() !== "/epoxy/index.mjs") {
-		await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
-	}
-	frame.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+// Serve Ultraviolet files
+app.use('/uv/', express.static(uvPath));
+
+// Create HTTP server
+const server = http.createServer();
+
+// Handle requests
+server.on('request', (req, res) => {
+  if (bareServer.shouldRoute(req)) {
+    // Handle bare requests
+    bareServer.routeRequest(req, res);
+  } else {
+    // Handle HTTP requests
+    app.handle(req, res);
+  }
+});
+
+// Handle upgrades
+server.on('upgrade', (req, socket, head) => {
+  if (bareServer.shouldRoute(req)) {
+    bareServer.routeUpgrade(req, socket, head);
+  } else {
+    socket.end();
+  }
+});
+
+// Start the server
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
