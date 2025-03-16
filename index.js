@@ -1,21 +1,19 @@
-import express from 'express';
-import { uvPath } from '@titaniumnetwork-dev/ultraviolet';
-import { createBareServer } from '@tomphttp/bare-server-node';
-import http from 'http';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const express = require('express');
+const { createBareServer } = require('@tomphttp/bare-server-node');
+const http = require('http');
+const path = require('path');
+const { fileURLToPath } = require('url');
 
+// Fix dirname issue
 const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Create bare server
-const bareServer = createBareServer('/bare/');
-
 // Serve static files
 app.use(express.static(path.join(dirname, 'public')));
+
 
 // Serve Ultraviolet files
 app.use('/uv/', express.static(uvPath));
@@ -43,7 +41,7 @@ server.on('upgrade', (req, socket, head) => {
   }
 });
 
-// Start the server
-server.listen(PORT, () => {
+// Start server
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
