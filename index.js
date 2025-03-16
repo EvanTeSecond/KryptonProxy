@@ -45,5 +45,5 @@ server.on('upgrade', (req, socket, head) => {
 
 // Start the server
 server.listen(PORT, () => {
-  console.log(Server running on port ${PORT});
+  console.log(`Server running on port ${PORT}`);
 });
