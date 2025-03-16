@@ -10,9 +10,14 @@ self.__uv$config = {
 };
 
 // public/sw.js
-importScripts('/uv/uv.bundle.js');
+/*importScripts('/uv/uv.bundle.js');
 importScripts('/uv/uv.config.js');
-importScripts('/uv/uv.sw.js');
+importScripts('/uv/uv.sw.js');*/
+
+import { UVServiceWorker } from '/uv/uv.bundle.js';
+import { UVServiceWorker } from '/uv/uv.config.js';
+import { UVServiceWorker } from '/uv/uv.sw.js';
+
 
 const uv = new UVServiceWorker();
 
