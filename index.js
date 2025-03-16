@@ -1,8 +1,13 @@
-const express = require('express');
-const { uvPath } = require('@titaniumnetwork-dev/ultraviolet');
-const { createBareServer } = require('@tomphttp/bare-server-node');
-const http = require('http');
-const path = require('path');
+import express from 'express';
+import { uvPath } from '@titaniumnetwork-dev/ultraviolet';
+import { createBareServer } from '@tomphttp/bare-server-node';
+import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const filename = fileURLToPath(import.meta.url);
+const dirname = dirname(filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -11,7 +16,7 @@ const PORT = process.env.PORT || 8080;
 const bareServer = createBareServer('/bare/');
 
 // Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(dirname, 'public')));
 
 // Serve Ultraviolet files
 app.use('/uv/', express.static(uvPath));
@@ -41,5 +46,5 @@ server.on('upgrade', (req, socket, head) => {
 
 // Start the server
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(Server running on port ${PORT});
 });
