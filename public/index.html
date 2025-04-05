@@ -19,26 +19,31 @@
     </div>
 
     <script>
-        document.getElementById('uv-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            const address = document.getElementById('uv-address').value;
-            const searchEngine = document.getElementById('uv-search-engine').value;
-            
-            let url;
-            if (!/^https?:\/\//.test(address)) {
-                url = searchEngine.replace('%s', encodeURIComponent(address));
-            } else {
-                url = address;
-            }
-            
-            window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
-        });
-
+        // Register service worker first before setting up the form handler
         navigator.serviceWorker.register('/uv/uv.sw.js', {
-          scope: __uv$config.prefix
+            scope: __uv$config.prefix
+        }).then(() => {
+            console.log('Service worker registered successfully');
+            
+            // Set up form handler after service worker is registered
+            document.getElementById('uv-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const address = document.getElementById('uv-address').value;
+                const searchEngine = document.getElementById('uv-search-engine').value;
+                
+                let url;
+                if (!/^https?:\/\//.test(address)) {
+                    url = searchEngine.replace('%s', encodeURIComponent(address));
+                } else {
+                    url = address;
+                }
+                
+                window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
+            });
         }).catch(err => {
-          console.error('Failed to register service worker:', err);
+            console.error('Failed to register service worker:', err);
+            alert('Failed to register service worker. Please check console for details.');
         });
     </script>
 </body>
