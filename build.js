@@ -30,3 +30,7 @@ fs.writeFileSync(path.join(uvDir, 'uv.config.js'), UV_CONFIG);
 
 console.log('Build completed successfully!');
 `;
+
+addEventListener('fetch', event => {
+  event.respondWith(router.handle(event.request));
+});
