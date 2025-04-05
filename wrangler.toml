@@ -1,0 +1,9 @@
+name = "uv-proxy"
+main = "src/index.js"
+compatibility_date = "2023-08-22"
+
+[build]
+command = "npm run build"
+
+[site]
+bucket = "./dist"
