@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UV Proxy</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="uv/uv.bundle.js" defer></script>
+    <script src="uv/uv.config.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Ultraviolet Proxy</h1>
+        <form id="uv-form">
+            <input id="uv-search-engine" value="https://www.google.com/search?q=%s" type="hidden">
+            <input id="uv-address" type="text" placeholder="Search the web freely or enter URL" autocomplete="off">
+            <button type="submit">Go</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('uv-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const address = document.getElementById('uv-address').value;
+            const searchEngine = document.getElementById('uv-search-engine').value;
+            
+            let url;
+            if (!/^https?:\/\//.test(address)) {
+                url = searchEngine.replace('%s', encodeURIComponent(address));
+            } else {
+                url = address;
+            }
+            
+            window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
+        });
+    </script>
+</body>
+</html>
