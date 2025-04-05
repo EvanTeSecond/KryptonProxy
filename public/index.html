@@ -34,6 +34,12 @@
             
             window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
         });
+
+        navigator.serviceWorker.register('/uv/uv.sw.js', {
+          scope: __uv$config.prefix
+        }).catch(err => {
+          console.error('Failed to register service worker:', err);
+        });
     </script>
 </body>
 </html>
