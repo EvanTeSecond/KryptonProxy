@@ -1,90 +1,146 @@
-const express = require('express');
-const { createBareServer } = require('@tomphttp/bare-server-node');
-const { uvPath } = require('ultraviolet');
-const path = require('path');
-const http = require('http');
-const fs = require('fs');
+import { Router } from 'itty-router';
+import { createBareClient } from '@tomphttp/bare-client';
+import { UVClient } from 'ultraviolet';
 
-// Create Express application
-const app = express();
-const port = process.env.PORT || 8080;
+// Create a new router
+const router = Router();
 
-// Create HTTP server
-const server = http.createServer();
-
-// Create Bare server
-const bareServer = createBareServer('/bare/');
-
-// Configure server request handler
-server.on('request', (req, res) => {
-    // Handle Bare requests
-    if (bareServer.shouldRoute(req)) {
-        bareServer.routeRequest(req, res);
-        return;
-    }
-
-    // Handle Express app for everything else
-    app(req, res);
+// Handle requests to the bare server
+router.all('/bare/*', async request => {
+  const bareClient = createBareClient({
+    remote: 'https://your-bare-server-url.com/bare/'
+  });
+  
+  return await bareClient.fetch(request);
 });
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, '../public')));
-
-// Serve Ultraviolet static files
-app.use('/uv/', express.static(uvPath));
-
-// Handle requests to root path
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+// Serve the UV client files
+router.get('/uv/*', async request => {
+  const path = new URL(request.url).pathname.replace('/uv/', '');
+  // You'd need to handle serving the UV client files here
+  // This would typically be done by serving from Cloudflare Pages or KV
 });
 
-// Copy UV files to public directory on startup
-const setupUltraviolet = async () => {
-    const uvPublicPath = path.join(__dirname, '../public/uv/');
-    
-    // Create UV directory if it doesn't exist
-    if (!fs.existsSync(uvPublicPath)) {
-        fs.mkdirSync(uvPublicPath, { recursive: true });
-    }
-    
-    // Copy UV client files from node_modules
-    const uvClientFiles = [
-        { from: require.resolve('ultraviolet/dist/uv.bundle.js'), to: path.join(uvPublicPath, 'uv.bundle.js') },
-        { from: require.resolve('ultraviolet/dist/uv.handler.js'), to: path.join(uvPublicPath, 'uv.handler.js') },
-        { from: require.resolve('ultraviolet/dist/uv.sw.js'), to: path.join(uvPublicPath, 'uv.sw.js') }
-    ];
-    
-    for (const file of uvClientFiles) {
-        fs.copyFileSync(file.from, file.to);
-    }
-    
-    // Create UV config file
-    const configContent = `
-    self.__uv$config = {
-        prefix: '/service/',
-        bare: '/bare/',
-        encodeUrl: Ultraviolet.codec.xor.encode,
-        decodeUrl: Ultraviolet.codec.xor.decode,
-        handler: '/uv/uv.handler.js',
-        bundle: '/uv/uv.bundle.js',
-        config: '/uv/uv.config.js',
-        sw: '/uv/uv.sw.js',
-    };
-    `;
-    
-    fs.writeFileSync(path.join(uvPublicPath, 'uv.config.js'), configContent);
-};
+// Serve the main application
+router.get('/', async () => {
+  return new Response(INDEX_HTML, {
+    headers: { 'Content-Type': 'text/html' }
+  });
+});
 
-// Start the server
-const startServer = async () => {
-    try {
-        await setupUltraviolet();
-        server.listen(port, () => {
-            console.log(`Ultraviolet proxy running on port ${port}`);
+// Fallback route
+router.all('*', async () => {
+  return new Response('Not Found', { status: 404 });
+});
+
+// Define your main HTML
+const INDEX_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UV Proxy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #121212;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+            text-align: center;
+            background: linear-gradient(45deg, #9c27b0, #673ab7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 6px;
+            background: #2d2d2d;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            box-shadow: 0 0 0 2px rgba(123, 31, 162, 0.5);
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            background: #9c27b0;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #7b1fa2;
+        }
+    </style>
+    <script src="/uv/uv.bundle.js" defer></script>
+    <script src="/uv/uv.config.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Ultraviolet Proxy</h1>
+        <form id="uv-form">
+            <input id="uv-search-engine" value="https://www.google.com/search?q=%s" type="hidden">
+            <input id="uv-address" type="text" placeholder="Search the web freely or enter URL" autocomplete="off">
+            <button type="submit">Go</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('uv-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const address = document.getElementById('uv-address').value;
+            const searchEngine = document.getElementById('uv-search-engine').value;
+            
+            let url;
+            if (!/^https?:\/\//.test(address)) {
+                url = searchEngine.replace('%s', encodeURIComponent(address));
+            } else {
+                url = address;
+            }
+            
+            window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
         });
-    } catch (error) {
-        console.error('Error starting server:', error);
-    }
-};
-
-startServer();
+    </script>
+</body>
+</html>`;
