@@ -5,7 +5,7 @@ import { createBareClient } from '@tomphttp/bare-client';
 const router = Router();
 
 // Set up your actual Bare server URL
-const BARE_SERVER_URL = 'https://your-bare-server-url.com/bare/';
+const BARE_SERVER_URL = 'https://testingkryptonproxy.pages.dev/bare/';
 
 router.all('/service/*', async request => {
   const url = new URL(request.url);
