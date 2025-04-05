@@ -7,14 +7,35 @@ const router = Router();
 // Set up your actual Bare server URL
 const BARE_SERVER_URL = 'https://your-bare-server-url.com/bare/';
 
-// Handle requests to the bare server
-router.all('/bare/*', async request => {
-  const bareClient = createBareClient({
-    remote: BARE_SERVER_URL
-  });
+router.all('/service/*', async request => {
+  const url = new URL(request.url);
+  const path = url.pathname.replace('/service/', '');
   
-  return await bareClient.fetch(request);
+  // This should be decoded by UV's service worker
+  const decodedUrl = Ultraviolet.codec.xor.decode(path);
+  
+  console.log(`[UV Worker] Proxying request to: ${decodedUrl}`);
+  
+  try {
+    // Use your bare client to make the request
+    const bareClient = createBareClient({
+      remote: BARE_SERVER_URL
+    });
+    
+    return await bareClient.fetch(decodedUrl, {
+      headers: request.headers,
+      method: request.method,
+      body: ['GET', 'HEAD'].includes(request.method) ? null : await request.blob(),
+    });
+  } catch (err) {
+    console.error('Error in service route:', err);
+    return new Response(`Service worker proxy error: ${err.toString()}`, { 
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
 });
+
 
 // Handle UV service worker requests
 router.get('/service/*', async request => {
