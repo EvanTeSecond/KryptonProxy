@@ -1,22 +1,18 @@
 self.__uv$config = {
-  prefix: '/service/',  // Web service endpoint
+  prefix: '/krypton/',  // Web service endpoint
   bare: '/bare/',       // Bare server endpoint
   encodeUrl: Ultraviolet.codec.xor.encode,
   decodeUrl: Ultraviolet.codec.xor.decode,
-  handler: '/uv/uv.handler.js',
-  bundle: '/uv/uv.bundle.js',
-  config: '/uv/uv.config.js',
-  sw: '/uv/uv.sw.js',
+  handler: '/public/uv/uv.handler.js',
+  bundle: '/public/uv/uv.bundle.js',
+  config: '/public/uv/uv.config.js',
+  sw: '/public/uv/uv.sw.js',
 };
 
 // public/sw.js
-importScripts('/uv/uv.bundle.js');
-importScripts('/uv/uv.config.js');
-importScripts('/uv/uv.sw.js');
-
-/*import { UVServiceWorker } from '/uv/uv.bundle.js';
-import { UVServiceWorker } from '/uv/uv.config.js';
-import { UVServiceWorker } from '/uv/uv.sw.js';*/
+importScripts('/public/uv/uv.bundle.js');
+importScripts('/public/uv/uv.config.js');
+importScripts('/public/uv/uv.sw.js');
 
 
 const uv = new UVServiceWorker();
