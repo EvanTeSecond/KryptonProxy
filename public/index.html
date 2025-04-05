@@ -19,32 +19,59 @@
     </div>
 
     <script>
-        // Register service worker first before setting up the form handler
-        navigator.serviceWorker.register('/uv/uv.sw.js', {
-            scope: __uv$config.prefix
-        }).then(() => {
-            console.log('Service worker registered successfully');
-            
-            // Set up form handler after service worker is registered
-            document.getElementById('uv-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                
-                const address = document.getElementById('uv-address').value;
-                const searchEngine = document.getElementById('uv-search-engine').value;
-                
-                let url;
-                if (!/^https?:\/\//.test(address)) {
-                    url = searchEngine.replace('%s', encodeURIComponent(address));
-                } else {
-                    url = address;
-                }
-                
-                window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
-            });
-        }).catch(err => {
-            console.error('Failed to register service worker:', err);
-            alert('Failed to register service worker. Please check console for details.');
+
+    function debugLog(message) {
+      console.log(`[UV Debug] ${message}`);
+      const debugElement = document.createElement('div');
+      debugElement.style.position = 'fixed';
+      debugElement.style.bottom = '10px';
+      debugElement.style.left = '10px';
+      debugElement.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      debugElement.style.color = 'white';
+      debugElement.style.padding = '5px';
+      debugElement.style.borderRadius = '5px';
+      debugElement.textContent = message;
+      document.body.appendChild(debugElement);
+    }
+    
+    // Check if service worker is supported
+    if ('serviceWorker' in navigator) {
+      debugLog('Service workers supported');
+      
+      // Register service worker
+      navigator.serviceWorker.register('/uv/uv.sw.js', {
+        scope: __uv$config.prefix
+      }).then(reg => {
+        debugLog('Service worker registered: ' + reg.scope);
+        
+        // Set up form handler
+        document.getElementById('uv-form').addEventListener('submit', function(event) {
+          event.preventDefault();
+          debugLog('Form submitted');
+          
+          const address = document.getElementById('uv-address').value;
+          const searchEngine = document.getElementById('uv-search-engine').value;
+          
+          let url;
+          if (!/^https?:\/\//.test(address)) {
+            url = searchEngine.replace('%s', encodeURIComponent(address));
+          } else {
+            url = address;
+          }
+          
+          const encodedUrl = __uv$config.encodeUrl(url);
+          const fullUrl = __uv$config.prefix + encodedUrl;
+          
+          debugLog(`Navigating to: ${fullUrl}`);
+          window.location.href = fullUrl;
         });
+      }).catch(err => {
+        debugLog('Service worker registration failed: ' + err.toString());
+        console.error('Service worker registration failed:', err);
+      });
+    } else {
+      debugLog('Service workers not supported');
+    }
     </script>
 </body>
 </html>
