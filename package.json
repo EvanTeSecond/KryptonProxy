@@ -1,16 +1,17 @@
 {
-  "name": "ultraviolet-proxy",
+  "name": "cloudflare-uv-proxy",
   "version": "1.0.0",
-  "type": "module",
-  "description": "Ultraviolet proxy deployment",
-  "main": "index.js",
+  "description": "Ultraviolet proxy for Cloudflare Workers",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node index.js",
-    "build": "node build.js"
+    "build": "node build.js",
+    "deploy": "wrangler publish"
   },
   "dependencies": {
-    "@titaniumnetwork-dev/ultraviolet": "^1.0.10",
-    "@tomphttp/bare-server-node": "^1.2.5",
-    "express": "^4.18.2"
+    "@tomphttp/bare-client": "^2.0.0",
+    "ultraviolet": "^2.0.1"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
   }
 }
